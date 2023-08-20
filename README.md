@@ -1,4 +1,4 @@
-# LightsByMessage
+# Lights By Message
 
 An implementation of the lights out game in Phoenix Liveview, based on [this youtube video](https://www.youtube.com/watch?v=hrpulBR5PFg).
 The goal of this project is to expand upon that by adding URL parameters to set the initial board state and allowing people to create and share Lights Out puzzles through a generated link.
