@@ -51,10 +51,9 @@ defmodule LightsOutGameWeb.Board do
           end)
           |> then(fn toggled_grid -> OrdMap.merge(grid, toggled_grid) end)
 
-        grid_string = grid_to_string(updated_grid) |> compress_string()
-
         board_url =
-          LightsOutGameWeb.Endpoint.url() <> "?init=" <> "#{size_x}_#{size_y}_" <> grid_string
+          LightsOutGameWeb.Endpoint.url() <>
+            "?init=" <> gen_init_string(size_x, size_y, updated_grid)
 
         win = check_win(updated_grid)
 
@@ -68,7 +67,6 @@ defmodule LightsOutGameWeb.Board do
   end
 
   defp find_adjacent_tiles(x, y, max_x, max_y) do
-    IO.puts(max_x)
     prev_x = Kernel.max(0, x - 1)
     prev_y = Kernel.max(0, y - 1)
     next_x = Kernel.min(max_x, x + 1)
@@ -84,7 +82,7 @@ defmodule LightsOutGameWeb.Board do
   end
 
   defp gen_init_string(x, y, grid) do
-    "#{x}_#{y}_" <> grid_to_string(grid)
+    "#{x}_#{y}_" <> compress_string(grid_to_string(grid))
   end
 
   defp grid_to_string(grid) do
