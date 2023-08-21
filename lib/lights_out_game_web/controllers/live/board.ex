@@ -112,20 +112,20 @@ defmodule LightsOutGameWeb.Board do
         [] ->
           [[val]]
 
-        [h | t] ->
-          count = Integer.to_string(Enum.count(h))
-          latestVal = List.first(h)
+        [x | xs] ->
+          count = Integer.to_string(Enum.count(x))
+          latestVal = List.first(x)
           compressedSeries = Enum.reverse([count | [latestVal]])
 
           cond do
             val == "E" ->
-              [compressedSeries | t]
+              [compressedSeries | xs]
 
             val == latestVal ->
-              [[val | h] | t]
+              [[val | x] | xs]
 
             true ->
-              [[val] | [compressedSeries | t]]
+              [[val] | [compressedSeries | xs]]
           end
       end
     end)
@@ -139,9 +139,9 @@ defmodule LightsOutGameWeb.Board do
     |> List.flatten()
     |> Enum.map(fn group -> String.graphemes(group) |> Enum.reverse() end)
     |> Enum.reverse()
-    |> Enum.map(fn [h | t] ->
-      char = h
-      n = t |> Enum.reverse() |> List.to_string() |> String.to_integer()
+    |> Enum.map(fn [x | xs] ->
+      char = x
+      n = xs |> Enum.reverse() |> List.to_string() |> String.to_integer()
       String.duplicate(char, n)
     end)
     |> Enum.reverse()
