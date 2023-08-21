@@ -41,11 +41,9 @@ defmodule LightsOutGameWeb.Board do
       false ->
         grid_x = String.to_integer(str_x)
         grid_y = String.to_integer(str_y)
-        max_x = size_x - 1
-        max_y = size_y - 1
 
         updated_grid =
-          find_adjacent_tiles(grid_x, grid_y, max_x, max_y)
+          find_adjacent_tiles(grid_x, grid_y, size_x, size_y)
           |> Enum.reduce(OrdMap.new(%{}), fn point, acc ->
             OrdMap.put(acc, point, !OrdMap.get(grid, point))
           end)
@@ -66,11 +64,11 @@ defmodule LightsOutGameWeb.Board do
     end
   end
 
-  defp find_adjacent_tiles(x, y, max_x, max_y) do
+  defp find_adjacent_tiles(x, y, size_x, size_y) do
     prev_x = Kernel.max(0, x - 1)
     prev_y = Kernel.max(0, y - 1)
-    next_x = Kernel.min(max_x, x + 1)
-    next_y = Kernel.min(max_y, y + 1)
+    next_x = Kernel.min(size_x - 1, x + 1)
+    next_y = Kernel.min(size_y - 1, y + 1)
 
     [{x, y}, {prev_x, y}, {next_x, y}, {x, prev_y}, {x, next_y}]
   end
