@@ -5,44 +5,44 @@ defmodule LightsOutGameWeb.Board do
   def mount(params, _session, socket) do
     init_str = Map.get(params, "init", "5_5_3X1O6X1O6X2O6X")
     parts = String.split(init_str, "_")
-
     [size_x, size_y, grid_string | _] = parts
     size_x = size_x |> String.to_integer()
     size_y = size_y |> String.to_integer()
 
-    grid_string = uncompress_string(grid_string)
-
-    IO.puts(grid_string)
-
     grid_style =
       "grid-template-columns: repeat(#{size_x}, minmax(0, 1fr)); grid-template-rows: repeat(#{size_y}, minmax(0, 1fr));"
 
-    grid = string_to_grid(grid_string, size_x, size_y)
-    # level1 = %{{2, 0} => true, {2, 2} => true, {2, 4} => true}
-    # grid = Map.merge(grid, level1)
+    grid = string_to_grid(uncompress_string(grid_string), size_x, size_y)
+
+    board_url =
+      LightsOutGameWeb.Endpoint.url() <> "?init=" <> "#{size_x}_#{size_y}_" <> grid_string
+
     {:ok,
      assign(socket,
        grid: grid,
        grid_style: grid_style,
        win: false,
-       max_x: size_x - 1,
-       max_y: size_y - 1
+       size_x: size_x,
+       size_y: size_y,
+       board_url: board_url
      )}
   end
 
   def handle_event("toggle", %{"x" => str_x, "y" => str_y}, socket) do
     already_won = socket.assigns.win
+    grid = socket.assigns.grid
+    size_x = socket.assigns.size_x
+    size_y = socket.assigns.size_y
 
     case already_won do
       true ->
         {:noreply, socket}
 
       false ->
-        grid = socket.assigns.grid
         grid_x = String.to_integer(str_x)
         grid_y = String.to_integer(str_y)
-        max_x = socket.assigns.max_x
-        max_y = socket.assigns.max_y
+        max_x = size_x - 1
+        max_y = size_y - 1
 
         updated_grid =
           find_adjacent_tiles(grid_x, grid_y, max_x, max_y)
@@ -51,9 +51,14 @@ defmodule LightsOutGameWeb.Board do
           end)
           |> then(fn toggled_grid -> OrdMap.merge(grid, toggled_grid) end)
 
+        grid_string = grid_to_string(updated_grid) |> compress_string()
+
+        board_url =
+          LightsOutGameWeb.Endpoint.url() <> "?init=" <> "#{size_x}_#{size_y}_" <> grid_string
+
         win = check_win(updated_grid)
 
-        socket = assign(socket, grid: updated_grid, win: win)
+        socket = assign(socket, grid: updated_grid, win: win, board_url: board_url)
 
         case win do
           true -> {:noreply, push_event(socket, "gameover", %{win: win})}
@@ -78,13 +83,15 @@ defmodule LightsOutGameWeb.Board do
     |> Enum.all?(fn light -> !light end)
   end
 
-  defp grid_to_string(x, y, grid) do
-    grid_string =
-      grid
-      |> OrdMap.values()
-      |> Enum.each(fn val -> if val, do: "O", else: "X" end)
+  defp gen_init_string(x, y, grid) do
+    "#{x}_#{y}_" <> grid_to_string(grid)
+  end
 
-    "#{x}_#{y}_" <> grid_string
+  defp grid_to_string(grid) do
+    grid
+    |> OrdMap.values()
+    |> Enum.map(fn val -> if val, do: "O", else: "X" end)
+    |> List.to_string()
   end
 
   defp string_to_grid(grid_string, size_x, size_y) do
