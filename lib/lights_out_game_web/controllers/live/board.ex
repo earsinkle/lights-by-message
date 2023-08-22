@@ -103,32 +103,9 @@ defmodule LightsOutGameWeb.Board do
 
   defp compress_string(uncompressed_grid_string) do
     uncompressed_grid_string
-    |> (&(&1 <> "E")).()
     |> String.graphemes()
-    |> Enum.reduce([], fn val, acc ->
-      case acc do
-        [] ->
-          [[val]]
-
-        [x | xs] ->
-          count = Integer.to_string(Enum.count(x))
-          latestVal = List.first(x)
-          compressedSeries = Enum.reverse([count | [latestVal]])
-
-          cond do
-            val == "E" ->
-              [compressedSeries | xs]
-
-            val == latestVal ->
-              [[val | x] | xs]
-
-            true ->
-              [[val] | [compressedSeries | xs]]
-          end
-      end
-    end)
-    |> List.flatten()
-    |> Enum.reverse()
+    |> Enum.chunk_by(&Function.identity(&1))
+    |> Enum.map(&(Integer.to_string(Enum.count(&1)) <> Kernel.hd(&1)))
     |> List.to_string()
   end
 
@@ -136,13 +113,11 @@ defmodule LightsOutGameWeb.Board do
     Regex.scan(~r/[0-9]+[XO]+/, compressed_grid_string)
     |> List.flatten()
     |> Enum.map(fn group -> String.graphemes(group) |> Enum.reverse() end)
-    |> Enum.reverse()
     |> Enum.map(fn [x | xs] ->
       char = x
       n = xs |> Enum.reverse() |> List.to_string() |> String.to_integer()
       String.duplicate(char, n)
     end)
-    |> Enum.reverse()
     |> List.to_string()
   end
 end
